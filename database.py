@@ -29,7 +29,7 @@ cik_x = tikr_df.iloc[[index_x]]['cik_str'].values[0]
 cik_url = f"https://data.sec.gov/submissions/CIK{cik_x}.json"
 # print(cik_url)
 # send the request with Firefox header; assume Mozilla isn't designed for bots?
-cik_response = json.loads((requests.get(cik_url, headers={"User-Agent": "Mozilla/5.0"})).text)
+cik_response = pd.json_normalize(json.loads((requests.get(cik_url, headers={"User-Agent": "Mozilla/5.0"})).text))
 # cik_df = pd.read_json(cik_response)
 print(cik_response)
-cik_df = pd.DataFrame(json.normalize(cik_response))
+# cik_df = pd.DataFrame(json_normalize(cik_response))
