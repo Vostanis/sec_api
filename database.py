@@ -29,7 +29,9 @@ cik_x           = tikr_df.iloc[[index_x]]['cik_str'].values[0]
 cik_url         = f"https://data.sec.gov/submissions/CIK{cik_x}.json"
 concepts_url    = f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json"
 facts_url       = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json"
-
+print(cik_url)
+print(concepts_url)
+print(facts_url)
 # send the request with a Firefox header (keeps it generalised; would need an email otherwise)
 cik_response        = json.loads((requests.get(cik_url,         headers={"User-Agent": "Mozilla/5.0"})).text)
 concepts_response   = json.loads((requests.get(concepts_url,    headers={"User-Agent": "Mozilla/5.0"})).text)
@@ -40,16 +42,17 @@ concepts_df         = pd.json_normalize(concepts_response)
 facts_df            = pd.json_normalize(facts_response)
 
 # df playground
-print(cik_df.columns.tolist())
+# print(cik_df.columns.tolist())
 print(cik_df)
-filings_df = pd.DataFrame(cik_df['filings.files'][0])
-print(filings_df)
+# filings_df = pd.DataFrame(cik_df['filings.files'][0])
+# print(filings_df)
 # print(concepts_df.columns.tolist())
-# print(facts_df.columns.tolist())
-
-# print(concepts_df['units.USD'][0])
+print(facts_df.columns.tolist())
+print(facts_df['facts.dei.EntityCommonStockSharesOutstanding.units.shares'][0])
+shares_outstanding_df = pd.DataFrame(facts_df['facts.dei.EntityCommonStockSharesOutstanding.units.shares'][0])
+print(shares_outstanding_df)
+# print(concepts_df['units.U    SD'][0])
 # print(concepts_df['units.USD'][0][0])
-
 # usd_df = pd.DataFrame(concepts_df['units.USD'][0])
 # print(usd_df)
 # print(usd_df.columns.tolist())
