@@ -31,17 +31,22 @@ concepts_url    = f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-g
 facts_url       = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json"
 
 # send the request with a Firefox header (keeps it generalised; would need an email otherwise)
-cik_response         = [json.loads((requests.get(cik_url,         headers={"User-Agent": "Mozilla/5.0"})).text)]
-concepts_response    = [json.loads((requests.get(concepts_url,    headers={"User-Agent": "Mozilla/5.0"})).text)]
-facts_response       = [json.loads((requests.get(facts_url,       headers={"User-Agent": "Mozilla/5.0"})).text)]
+cik_response        = json.loads((requests.get(cik_url,         headers={"User-Agent": "Mozilla/5.0"})).text)
+concepts_response   = json.loads((requests.get(concepts_url,    headers={"User-Agent": "Mozilla/5.0"})).text)
+facts_response      = json.loads((requests.get(facts_url,       headers={"User-Agent": "Mozilla/5.0"})).text)
 print(concepts_response)
-cik_df          = pd.json_normalize(cik_response)
-concepts_df     = pd.json_normalize(concepts_response)
-facts_df        = pd.json_normalize(facts_response)
+cik_df              = pd.json_normalize(cik_response)
+concepts_df         = pd.json_normalize(concepts_response)
+facts_df            = pd.json_normalize(facts_response)
 
 # print(cik_df.columns.tolist())
 print(concepts_df.columns.tolist())
 # print(facts_df.columns.tolist())
 
-revenue_df      = pd.json_normalize(concepts_response, record_path=['units'], meta=['USD.val', 'USD.filed'])
-print(revenue_df)
+print(concepts_df['units.USD'][0])
+print(concepts_df['units.USD'][0][0])
+# USD_df = concepts_df['units.USD'][0]
+
+
+# revenue_df      = pd.json_normalize(concepts_response, record_path=['units'], meta=['USD.val', 'USD.filed'])
+# print(revenue_df)
