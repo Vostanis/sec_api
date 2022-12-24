@@ -3,33 +3,50 @@ import json
 import pandas as pd
 import requests
 
-# tikr set
-tikr_url = "https://www.sec.gov/files/company_tickers.json"
-tikr_response = urlopen(tikr_url)
-tikr_df = pd.DataFrame(json.loads(tikr_response.read())).transpose()
+# tikr df
+tikr_url        = "https://www.sec.gov/files/company_tickers.json"
+tikr_response   = urlopen(tikr_url)
+tikr_df         = pd.DataFrame(json.loads(tikr_response.read())).transpose()
 
 # cik code is considered int, so fill up to 10th character with zeros if necessary
 tikr_df['cik_str'] = tikr_df['cik_str'].apply('{:0>10}'.format)
-# print(tikr_df)
 
 # input ticker, locate respective index, and retrieve CIK code for joining
-print('Enter Ticker Symbol:\t')
-tikr_x = input().upper()
-print(tikr_df.loc[tikr_df['ticker'] == tikr_x])
-index_x = tikr_df.index[tikr_df['ticker'] == tikr_x][0]
-cik_x = tikr_df.iloc[[index_x]]['cik_str'].values[0]
+# 1. input ticker
+##################################
+# print('Enter Ticker Symbol:\t')
+# tikr_x        = input().upper()
+tikr_x          = 'JNJ'
+##################################
+
+# 2. retrieve index and CIk
+index_x         = tikr_df.index[tikr_df['ticker'] == tikr_x][0]
+cik_x           = tikr_df.iloc[[index_x]]['cik_str'].values[0]
 # print(index_x)
 # print(cik_x)
 
-# Maybe 3am JSON download setup (looking more likely; think SEC api would need company)
-# Structure might be flawed as independent
-# anywhere to virtually host this?? shouldn't be much data to download
+# 3. build dfs, of relevant company, via CIK
+cik_url         = f"https://data.sec.gov/submissions/CIK{cik_x}.json"
+concepts_url    = f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json"
+facts_url       = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json"
 
-# build submissions of selected ticker
-cik_url = f"https://data.sec.gov/submissions/CIK{cik_x}.json"
-# print(cik_url)
-# send the request with Firefox header; assume Mozilla isn't designed for bots?
-cik_response = pd.json_normalize(json.loads((requests.get(cik_url, headers={"User-Agent": "Mozilla/5.0"})).text))
-# cik_df = pd.read_json(cik_response)
-print(cik_response)
-# cik_df = pd.DataFrame(json_normalize(cik_response))
+# send the request with a Firefox header (keeps it generalised; would need an email otherwise)
+cik_response        = json.loads((requests.get(cik_url,         headers={"User-Agent": "Mozilla/5.0"})).text)
+concepts_response   = json.loads((requests.get(concepts_url,    headers={"User-Agent": "Mozilla/5.0"})).text)
+facts_response      = json.loads((requests.get(facts_url,       headers={"User-Agent": "Mozilla/5.0"})).text)
+print(concepts_response)
+cik_df              = pd.json_normalize(cik_response)
+concepts_df         = pd.json_normalize(concepts_response)
+facts_df            = pd.json_normalize(facts_response)
+
+# print(cik_df.columns.tolist())
+print(concepts_df.columns.tolist())
+# print(facts_df.columns.tolist())
+
+print(concepts_df['units.USD'][0])
+print(concepts_df['units.USD'][0][0])
+# USD_df = concepts_df['units.USD'][0]
+
+
+# revenue_df      = pd.json_normalize(concepts_response, record_path=['units'], meta=['USD.val', 'USD.filed'])
+# print(revenue_df)
