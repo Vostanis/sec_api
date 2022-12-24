@@ -16,7 +16,7 @@ tikr_df['cik_str'] = tikr_df['cik_str'].apply('{:0>10}'.format)
 ##################################
 # print('Enter Ticker Symbol:\t')
 # tikr_x        = input().upper()
-tikr_x          = 'JNJ'
+tikr_x          = 'JNJ' # test example
 ##################################
 
 # 2. retrieve index and CIk
@@ -34,19 +34,22 @@ facts_url       = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json"
 cik_response        = json.loads((requests.get(cik_url,         headers={"User-Agent": "Mozilla/5.0"})).text)
 concepts_response   = json.loads((requests.get(concepts_url,    headers={"User-Agent": "Mozilla/5.0"})).text)
 facts_response      = json.loads((requests.get(facts_url,       headers={"User-Agent": "Mozilla/5.0"})).text)
-print(concepts_response)
+# print(concepts_response)
 cik_df              = pd.json_normalize(cik_response)
 concepts_df         = pd.json_normalize(concepts_response)
 facts_df            = pd.json_normalize(facts_response)
 
-# print(cik_df.columns.tolist())
-print(concepts_df.columns.tolist())
+# df playground
+print(cik_df.columns.tolist())
+print(cik_df)
+filings_df = pd.DataFrame(cik_df['filings.files'][0])
+print(filings_df)
+# print(concepts_df.columns.tolist())
 # print(facts_df.columns.tolist())
 
-print(concepts_df['units.USD'][0])
-print(concepts_df['units.USD'][0][0])
-# USD_df = concepts_df['units.USD'][0]
+# print(concepts_df['units.USD'][0])
+# print(concepts_df['units.USD'][0][0])
 
-
-# revenue_df      = pd.json_normalize(concepts_response, record_path=['units'], meta=['USD.val', 'USD.filed'])
-# print(revenue_df)
+# usd_df = pd.DataFrame(concepts_df['units.USD'][0])
+# print(usd_df)
+# print(usd_df.columns.tolist())
