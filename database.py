@@ -1,7 +1,8 @@
 from urllib.request import urlopen
+import requests
 import json
 import pandas as pd
-import requests
+import matplotlib.pyplot as plt
 
 # tikr df
 tikr_url        = "https://www.sec.gov/files/company_tickers.json"
@@ -16,7 +17,7 @@ tikr_df['cik_str'] = tikr_df['cik_str'].apply('{:0>10}'.format)
 ##################################
 # print('Enter Ticker Symbol:\t')
 # tikr_x        = input().upper()
-tikr_x          = 'JNJ' # test example
+tikr_x          = 'AZPN' # test example
 ##################################
 
 # 2. retrieve index and CIk
@@ -51,8 +52,16 @@ print(facts_df.columns.tolist())
 print(facts_df['facts.dei.EntityCommonStockSharesOutstanding.units.shares'][0])
 shares_outstanding_df = pd.DataFrame(facts_df['facts.dei.EntityCommonStockSharesOutstanding.units.shares'][0])
 print(shares_outstanding_df)
-# print(concepts_df['units.U    SD'][0])
+eps_df = pd.DataFrame(facts_df['facts.us-gaap.EarningsPerShareBasic.units.USD/shares'][0])
+eps_df_filtered = eps_df[eps_df['form'] != '10-K'].dropna()
+print(eps_df_filtered)
+# print(concepts_df['units.USD'][0])
 # print(concepts_df['units.USD'][0][0])
 # usd_df = pd.DataFrame(concepts_df['units.USD'][0])
 # print(usd_df)
 # print(usd_df.columns.tolist())
+
+shares_outstanding_df.plot(x='end', y='val', kind='line')
+plt.show()
+eps_df.plot(x='end', y='val', kind='line')
+plt.show()
