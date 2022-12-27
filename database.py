@@ -3,6 +3,7 @@ import requests
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # tikr df
 tikr_url        = "https://www.sec.gov/files/company_tickers.json"
@@ -17,7 +18,7 @@ tikr_df['cik_str'] = tikr_df['cik_str'].apply('{:0>10}'.format)
 ##################################
 # print('Enter Ticker Symbol:\t')
 # tikr_x        = input().upper()
-tikr_x          = 'AZPN' # test example
+tikr_x          = 'JNJ' # test example
 ##################################
 
 # 2. retrieve index and CIk
@@ -53,15 +54,29 @@ print(facts_df['facts.dei.EntityCommonStockSharesOutstanding.units.shares'][0])
 shares_outstanding_df = pd.DataFrame(facts_df['facts.dei.EntityCommonStockSharesOutstanding.units.shares'][0])
 print(shares_outstanding_df)
 eps_df = pd.DataFrame(facts_df['facts.us-gaap.EarningsPerShareBasic.units.USD/shares'][0])
-eps_df_filtered = eps_df[eps_df['form'] != '10-K'].dropna()
-print(eps_df_filtered)
+eps_df_10q = eps_df.set_index('end').dropna()
+# print(eps_df_10q)
+# print(eps_df.dropna())
+eps_df_10k = eps_df[(eps_df['frame'].str.len() == 8)].set_index('end').dropna()
+# print(eps_df_10k)
 # print(concepts_df['units.USD'][0])
 # print(concepts_df['units.USD'][0][0])
+
 # usd_df = pd.DataFrame(concepts_df['units.USD'][0])
 # print(usd_df)
 # print(usd_df.columns.tolist())
 
-shares_outstanding_df.plot(x='end', y='val', kind='line')
-plt.show()
-eps_df.plot(x='end', y='val', kind='line')
-plt.show()
+# shares_outstanding_df.plot(x='end', y='val', kind='line')
+# plt.show()
+# eps_df.plot(x='end', y='val', kind='line')
+# plt.show()
+# eps_df_10q.plot(x='end', y='val', kind='line')
+# plt.show()
+# eps_df_10k.plot(x='end', y='val', kind='line')
+# plt.show()
+
+# info screen
+print(
+     f"{cik_df['name'].values[0].upper()}\t\t\t\t\t{cik_df['entityType'].values[0].upper()}\n=================================================\n\n",
+    f"EPS:\t\t\t\t\t\t\t\t{eps_df_10k['val'][eps_df_10k.index[-1]]}"
+)
