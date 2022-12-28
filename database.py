@@ -1,14 +1,19 @@
-from urllib.request import urlopen
-import requests
-import json
-import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
+from json_df import *
+
 
 # tikr df
 tikr_url        = "https://www.sec.gov/files/company_tickers.json"
 tikr_response   = urlopen(tikr_url)
 tikr_df         = pd.DataFrame(json.loads(tikr_response.read())).transpose()
+
+tikrs = json_df("https://www.sec.gov/files/company_tickers.json")
+print(tikrs.df)
+print(tikrs.df_normalized)
+tikrs.view_columns()
+x = input().upper()
+tikrs.connector(x)
+print(tikrs.connector)
 
 # cik code is considered int, so fill up to 10th character with zeros if necessary
 tikr_df['cik_str'] = tikr_df['cik_str'].apply('{:0>10}'.format)
