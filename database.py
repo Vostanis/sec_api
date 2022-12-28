@@ -2,43 +2,40 @@ import matplotlib.pyplot as plt
 from json_df import *
 
 
-# tikr df
-tikr_url        = "https://www.sec.gov/files/company_tickers.json"
-tikr_response   = urlopen(tikr_url)
-tikr_df         = pd.DataFrame(json.loads(tikr_response.read())).transpose()
-
 tikrs = json_df("https://www.sec.gov/files/company_tickers.json")
-print(tikrs.df)
-print(tikrs.df_normalized)
-tikrs.view_columns()
-x = input().upper()
-tikrs.connector(x)
-print(tikrs.connector)
-
-# cik code is considered int, so fill up to 10th character with zeros if necessary
-tikr_df['cik_str'] = tikr_df['cik_str'].apply('{:0>10}'.format)
+tikrs.df = tikrs.df.transpose()
+# cik code is considered int, so fill up to 10th character with zeros (if necessary)
+tikrs.df['cik_str'] = tikrs.df['cik_str'].apply('{:0>10}'.format)
 
 # input ticker, locate respective index, and retrieve CIK code for joining
-# 1. input ticker
-##################################
-# print('Enter Ticker Symbol:\t')
+# print('ENTER TICKER SYMBOL:\t')
 # tikr_x        = input().upper()
 tikr_x          = 'JNJ' # test example
-##################################
+# retrieve index and CIK
+cik_x = tikrs.find(tikr_x, 'ticker', 'cik_str')
 
-# 2. retrieve index and CIk
-index_x         = tikr_df.index[tikr_df['ticker'] == tikr_x][0]
-cik_x           = tikr_df.iloc[[index_x]]['cik_str'].values[0]
-# print(index_x)
-# print(cik_x)
+# build dfs, of relevant company; joint on CIK
+# filings     = json_df(f"https://data.sec.gov/submissions/CIK{cik_x}.json")
+concepts    = json_df(f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json")
+facts       = json_df(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json")
 
-# 3. build dfs, of relevant company, via CIK
+# print(filings.df)
+print(concepts.df)
+print(facts.df)
+# print(filings.df_normalized)
+print(concepts.df_normalized)
+print(facts.df_normalized)
+
+
+
+
+
 cik_url         = f"https://data.sec.gov/submissions/CIK{cik_x}.json"
 concepts_url    = f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json"
 facts_url       = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json"
-print(cik_url)
-print(concepts_url)
-print(facts_url)
+# print(cik_url)
+# print(concepts_url)
+# print(facts_url)
 # send the request with a Firefox header (keeps it generalised; would need an email otherwise)
 cik_response        = json.loads((requests.get(cik_url,         headers={"User-Agent": "Mozilla/5.0"})).text)
 concepts_response   = json.loads((requests.get(concepts_url,    headers={"User-Agent": "Mozilla/5.0"})).text)
