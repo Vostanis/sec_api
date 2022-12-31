@@ -2,38 +2,45 @@ import matplotlib.pyplot as plt
 from json_df import *
 
 
-tikrs = json_df(json_url("https://www.sec.gov/files/company_tickers.json"))
+tikrs = json_df(load_url("https://www.sec.gov/files/company_tickers.json"))
 tikrs.df = tikrs.df.transpose()
-# cik code is considered int, so fill to 10th character with zeros
 tikrs.df['cik_str'] = tikrs.df['cik_str'].apply('{:0>10}'.format)
 
 # input ticker, locate respective index, and retrieve CIK code for joining
 # print('ENTER TICKER SYMBOL:\t')
 # tikr_x        = input().upper()
 tikr_x          = 'JNJ' # test example
-# retrieve index and CIK
-cik_x = tikrs.find(tikr_x, 'ticker', 'cik_str')
+cik_x           = tikrs.find(tikr_x, 'ticker', 'cik_str')
 
 # build dfs, of relevant company; joint on CIK
-filings     = json_df(json_url(f"https://data.sec.gov/submissions/CIK{cik_x}.json"))
-concepts    = json_df(json_url(f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json"))
-facts       = json_df(json_url(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json"))
+filings         = json_df(load_url(f"https://data.sec.gov/submissions/CIK{cik_x}.json"))
+concepts        = json_df(load_url(f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json"))
+facts           = json_df(load_url(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json"))
 
-print(filings.df)
-print(concepts.df)
-print(facts.df)
+# print(filings.df_normalized)
+# print(concepts.df)
+# print(concepts.df_normalized)
+# print(facts.df)
+# print(facts.df_normalized)
 # print(filings.df_normalized)
 # print(concepts.df_normalized)
 # print(facts.df_normalized)
-
-eps         = json_df(facts.unpack('facts.us-gaap.EarningsPerShareBasic.units.USD/shares'))
-print(eps.df)
+# print(facts.df_normalized['facts.us-gaap.EarningsPerShareBasic.units.USD/shares'])
+# print(facts.df_normalized['facts.us-gaap.EarningsPerShareBasic.units.USD/shares'][0])
+eps_df = pd.DataFrame(facts.df_normalized['facts.us-gaap.EarningsPerShareBasic.units.USD/shares'])
+print(eps_df)
+eps_df = pd.DataFrame(facts.df_normalized['facts.us-gaap.EarningsPerShareBasic.units.USD/shares'][0])
+print(eps_df)
+# eps         = json_df(facts.unpack('facts.us-gaap.EarningsPerShareBasic.units.USD/shares'))
+# print(eps.df)
 
 
 # cik_url         = f"https://data.sec.gov/submissions/CIK{cik_x}.json"
 # concepts_url    = f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json"
 # facts_url       = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json"
 # print(cik_url)
+
+
 # print(concepts_url)
 # print(facts_url)
 # send the request with a Firefox header (keeps it generalised; would need an email otherwise)

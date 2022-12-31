@@ -5,12 +5,10 @@ import pandas as pd
 
 ################################################ INIT. FUNCTIONS ######################################################
 
-# call .json url, default disguised as a Firefox browser
-def json_url(url, user_agent="Mozilla/5.0"):
+# call .json url, disguised as a Firefox browser by default
+def load_url(url, user_agent="Mozilla/5.0"):
     return json.loads((requests.get(url, headers={"User-Agent": user_agent})).text)
-
 # json zip ?
-# json html ?
 
 #######################################################################################################################
 
@@ -19,10 +17,13 @@ class json_df:
         try:
             self.df = pd.DataFrame(df)
         except ValueError:
-            self.df = pd.json_normalize(df)
-            print(f'\033[1;31mValueError for {self}: {__name__} normalized instead\n\033[0m')
+        # self.df = pd.json_normalize(df)
+            print(f'\033[1;31mValueError for {self}; consider using normalized equivalent\n\033[0m')
 
+        # try:
         self.df_normalized = pd.json_normalize(df)
+        # except NotImplementedError:
+        #     print(f'\033[1;31mNotImplementedError for {self}: {__name__} cannot be normalized\n\033[0m')
 
     # quick view of entire df
     def view_columns(self):
@@ -35,4 +36,4 @@ class json_df:
 
     # unpack nested JSON into df
     def unpack(self, col_name):
-        return json_df(self.df_normalized[col_name][0])
+        return json_df(self.df_normalized[col_name][0].to_json())
