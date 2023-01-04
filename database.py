@@ -9,7 +9,6 @@ tikrs.df['cik_str'] = tikrs.df['cik_str'].apply('{:0>10}'.format) # fill loose C
 # input ticker, locate respective index, and retrieve CIK code for joining
 # print('ENTER TICKER SYMBOL:\t')
 # tikr_x    = input().upper()
-
 tikr_x      = 'JNJ' # test example
 
 # retrieve index and CIK
@@ -20,31 +19,11 @@ filings     = json_df(url=f"https://data.sec.gov/submissions/CIK{cik_x}.json")
 concepts    = json_df(url=f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json")
 facts       = json_df(url=f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json")
 
-print(facts.df_normalized['facts.dei.EntityCommonStockSharesOutstanding.units.shares'])
-# sharesOutstanding = json_df(txt=facts.df_normalized['facts.dei.EntityCommonStockSharesOutstanding.units.shares'][0].to_json())
-
-# shares_outstanding_df = pd.DataFrame(facts_df['facts.dei.EntityCommonStockSharesOutstanding.units.shares'][0])
-# print(shares_outstanding_df)
-# eps_df = pd.DataFrame(facts_df['facts.us-gaap.EarningsPerShareBasic.units.USD/shares'][0])
-# eps_df_10q = eps_df.set_index('end').dropna()
-# print(eps_df_10q)
-# print(eps_df.dropna())
-# eps_df_10k = eps_df[(eps_df['frame'].str.len() == 8)].set_index('end').dropna()
-# print(eps_df_10k)
-# print(concepts_df['units.USD'][0])
-
-# usd_df = pd.DataFrame(concepts_df['units.USD'][0])
-# print(usd_df)
-# print(usd_df.columns.tolist())
-
-# shares_outstanding_df.plot(x='end', y='val', kind='line')
-# plt.show()
-# eps_df.plot(x='end', y='val', kind='line')
-# plt.show()
-# eps_df_10q.plot(x='end', y='val', kind='line')
-# plt.show()
-# eps_df_10k.plot(x='end', y='val', kind='line')
-# plt.show()
+# shares outstanding example case
+sharesOutstanding = json_df(nest=facts.df_normalized['facts.dei.EntityCommonStockSharesOutstanding.units.shares'])
+sharesOutstanding.df = sharesOutstanding.df.dropna().tail(15)
+sharesOutstanding.df.plot(x='end', y='val', kind='line')
+plt.show()
 
 # info screen
 # print(

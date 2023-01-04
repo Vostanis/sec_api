@@ -6,12 +6,14 @@ import polars as pl
 
 
 class json_df:
-    def __init__(self, url=None, txt=None):
+    def __init__(self, url=None, txt=None, nest=None):
         if url is not None:
             # call disguised as a Firefox browser
             self.request = json.loads((requests.get(url, headers={"User-Agent": "Mozilla/5.0"})).text)
         if txt is not None:
             self.request = json.loads(txt)
+        if nest is not None:
+            self.request = nest[0]
         # if txt is not None and url is not None:
         #     print('\033[1;31mInputError: input requires only one parameter\n\033[0m')
 
@@ -36,7 +38,3 @@ class json_df:
     # unpack nested JSON into df
     def unpack(self, col_name):
         return pd.DataFrame(self.df_normalized[col_name][0])
-
-    # limit df to last y values
-    def limit(self, y=10):
-        return self.df.tail(y)
