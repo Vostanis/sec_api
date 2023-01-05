@@ -9,14 +9,14 @@ tikrs.df['cik_str'] = tikrs.df['cik_str'].apply('{:0>10}'.format) # fill loose C
 # input ticker, locate respective index, and retrieve CIK code for joining
 # print('ENTER TICKER SYMBOL:\t')
 # tikr_x    = input().upper()
-tikr_x      = 'JNJ' # test example
+tikr_x      = 'TMUS' # test example
 
 # retrieve index and CIK
 cik_x       = tikrs.find(tikr_x, 'ticker', 'cik_str')
 
 # build dfs, of relevant company; joint on CIK
 filings     = json_df(url=f"https://data.sec.gov/submissions/CIK{cik_x}.json")
-concepts    = json_df(url=f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json")
+# concepts    = json_df(url=f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik_x}/us-gaap/AccountsPayableCurrent.json")
 facts       = json_df(url=f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_x}.json")
 
 # shares outstanding example case
@@ -24,6 +24,9 @@ sharesOutstanding = json_df(nest=facts.df_normalized['facts.dei.EntityCommonStoc
 sharesOutstanding.df = sharesOutstanding.df.dropna().tail(15)
 sharesOutstanding.df.plot(x='end', y='val', kind='line')
 plt.show()
+
+eps = json_df(nest=facts.df_normalized['facts.us-gaap.EarningsPerShareBasic.units.USD/shares'])
+print(eps.df.dropna().tail(15))
 
 # info screen
 # print(
