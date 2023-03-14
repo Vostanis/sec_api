@@ -1,37 +1,90 @@
-from df_shortcuts import *
+from json_db import *
 from functions import *
 
 # import keyboard << come back to this
 
+# Settings Parameters
+daily_refresh_flag  = 0
 
 
 
 
 ### INIT STAGE BEGINS ###
+#########################
 clear_screen()
 print("Deploying ...")
+
 # Download bulk .zip of all SEC submission files and company facts
 # # If the file already exists & is modified today: do not redownload
-print("Gateway 1 ...")
-cf_file_path = zip_dir+"\\companyfacts.zip"
-download_gateway(cf_file_path,  load_url("https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip", dir=zip_dir))
-print("Gateway 2 ...")
-sbm_file_path = zip_dir+"\\submissions.zip"
-download_gateway(sbm_file_path, load_url("https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip", dir=zip_dir))
+def refresh():
+    if not os.path.exists(zip_dir):
+        print(f"Installing directory: {zip_dir}")
+        os.makedirs(zip_dir)
 
-# Unzip the bulk data
-print("Gateway 3 ...")
-if os.path.exists(db_dir+"\\companyfacts") and (datetime.date.fromtimestamp(db_dir + "\\companyfacts") == today):
-    pass
-else:
-    print("Unpacking companyfacts.zip ...")
-    unzip(zip_dir+"\\companyfacts.zip", db_dir)
-print("Gateway 4 ...")
-if os.path.exists(db_dir+"\\submissions") and (datetime.date.fromtimestamp(db_dir + "\\submissions") == today):
-    pass
-else:
-    print("Unpacking submissions.zip ...")
-    unzip(zip_dir+"\\submissions.zip", db_dir)
+    if daily_refresh_flag == 1:
+        print("Gateway 1 ...")
+        cf_zip_path = zip_dir+"\\companyfacts.zip"
+
+        if os.path.exists(cf_zip_path) and (datetime.date.fromtimestamp(os.path.getmtime(cf_zip_path)) == today): 
+            print("Passing   ...")
+            pass
+        else:
+            print("Requesting ...")
+            load_url("https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip", dir=zip_dir)
+
+        print("Gateway 2 ...")
+        sbm_zip_path = zip_dir+"\\submissions.zip"
+
+        if os.path.exists(sbm_zip_path) and (datetime.date.fromtimestamp(os.path.getmtime(sbm_zip_path)) == today): 
+            print("Passing   ...")
+            pass
+        else:
+            print("Requesting ...")
+            load_url("https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip", dir=zip_dir)
+
+        # Unzip the bulk data
+        # Company Facts
+        print("Gateway 3 ...")
+        cf_path = home_dir+"\\companyfacts"
+        if not os.path.exists(cf_path):
+            print(f"Installing directory: {cf_path}")
+            os.makedirs(cf_path)
+        if len(os.listdir(cf_path)) == 0:
+            unzip(cf_zip_path, cf_path)
+        if os.path.exists(cf_path) and (datetime.date.fromtimestamp(os.path.getmtime(cf_path)) != today):
+            try:
+                unzip(cf_zip_path, cf_path)
+            except Exception:
+                print(".zip corrupted - redownloading .zip")
+                os.remove(cf_zip_path)
+                load_url("https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip", dir=zip_dir)
+        else:
+            print("Passing\t")
+            pass
+        
+        # Submissions
+        print("Gateway 4 ...")
+        sbm_path = home_dir+"\\submissions"
+        if not os.path.exists(sbm_path):
+            print(f"Installing directory: {sbm_path}")
+            os.makedirs(sbm_path)
+
+        if len(os.listdir(sbm_path)) == 0:
+            unzip(sbm_zip_path, sbm_path)
+
+        if os.path.exists(sbm_path) and (datetime.date.fromtimestamp(os.path.getmtime(sbm_path)) != today):
+            try:
+                unzip(sbm_zip_path, sbm_path) # What if .zip corrupts?
+            except Exception:
+                print(".zip corrupted - redownloading .zip")
+                os.remove(sbm_zip_path)
+                load_url("https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip", dir=zip_dir)
+                unzip(sbm_zip_path, sbm_path)
+            print("Passing\t")
+            pass
+    else:
+        pass
+refresh()
 
 # Download CIK Code, Ticker Symbol, Company Name from .json link
 print("Requesting data ...")
@@ -40,6 +93,10 @@ tikrs.df = tikrs.df.transpose()
 tikrs.df['cik_str'] = tikrs.df['cik_str'].apply('{:0>10}'.format)
 print("Deployment complete.")
 clear_screen()
+
+# <<< install permanent state of Ticker table
+
+###########################
 ### INIT STAGE COMPLETE ###
 
 
@@ -80,82 +137,26 @@ def input_tikr():
     return output_cik
 
 cik_x = input_tikr()
-# print(cik_x)
 
-# Schema complete; data traversal begins here
+# Schema complete; all tables can now be joined    <<<   data traversal begins here
 clear_screen()
 
-submissions_zip = "submissions.zip"
-# submissions_zip = home_dir + "\\submissions.zip"
-# submissions_json = home_dir + "\\submissions\\CIK" + cik_x + ".json"
-submissions_json = "CIK" + cik_x + ".json"
-
-companyfacts_zip = "companyfacts.zip"
-# companyfacts_json = home_dir + "\\companyfacts\\CIK" + cik_x + ".json"
-companyfacts_json = "CIK" + cik_x + ".json"
-print(submissions_zip)
-print(submissions_json)
-print(companyfacts_zip)
-print(companyfacts_json)
+sbms_json   = sbms_dir+"\\CIK"+cik_x+".json"
+cf_json     = cf_dir  +"\\CIK"+cik_x+".json"
 
 def submissions_or_facts():
-    print("SEC API >> TICKERS >> ...\n")
-    print("1. Report Submissions, enter 'S'\n2. Company Data, enter 'D'\n")
-    input_key = input().upper()
-    if input_key == 'S':
-        return json_df(load_compr_file(submissions_zip, submissions_json))
-    elif input_key == 'D':
-        return json_df(load_compr_file(companyfacts_zip, companyfacts_json))
-    else:
-        submissions_or_facts()
+    while True:
+        print("SEC API >> TICKERS >> ...\n")
+        print("Press 1 for all Reports & Submissions\nPress 2 for Company Data Overview\n")
+        input_key = input().upper()
+        if   input_key == '1':
+            return json_df(sbms_json)
+        elif input_key == '2':
+            return json_df(cf_json)
 
 current = submissions_or_facts()
 print(current.df)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print(current.df_normalized)
 
 
 

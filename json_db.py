@@ -2,17 +2,26 @@ import pandas as pd
 
 class json_df:
     def __init__(self, df):
+
+        # 1st try to load .json file
+        try:
+            self.df = pd.read_json(df)
+        except Exception:
+            pass
+
+        # Then try a normale Pandas DataFrame
         try:
             self.df = pd.DataFrame(df)
         except ValueError:
-        # self.df = pd.json_normalize(df)
-            print(f'\033[1;31mValueError for {self}; consider using normalized equivalent\n\033[0m')
+            self.df = "ERROR: DataFrame is not available."
 
+        # Try a normalized option
         try:
             self.df_normalized = pd.json_normalize(df)
         except NotImplementedError:
-            print(f'\033[1;31mNotImplementedError for {self}: {__name__} cannot be normalized\n\033[0m')
+            self.df_normalized = "ERROR: Normalized DataFrame is not available."
 
+        
     # quick view of entire df by its columns
     def print_col(self):
         print(self.df_normalized.columns.tolist())
