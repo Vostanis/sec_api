@@ -11,11 +11,12 @@ today       = datetime.date.today()
 # Directory Shortcuts
 home_dir    = os.getcwd()
 zip_dir     = home_dir + "\\zip"
-cf_dir      = home_dir + "\\companyfacts"
-sbms_dir    = home_dir + "\\submissions"
+cf_dir     = home_dir + "\\companyfacts"
+sbms_dir   = home_dir + "\\submissions"
+tikr_dir   = home_dir + "\\tickers"
 
 # General Functions
-def clear_screen():         os.system('cls')
+def clear_screen(): os.system('cls')
 
 
 # call url; Mozilla user_agent browser by default

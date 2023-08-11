@@ -1,19 +1,24 @@
+from functions import *
+
 import pandas as pd
 
 class json_df:
     def __init__(self, df):
 
-        # 1st try to load .json file
-        try:
-            self.df = pd.read_json(df)
-        except Exception:
-            pass
+        # # 1st try to load .json file
+        # try:
+        #     self.df = pd.read_json(df)
+        # except Exception:
+        #     pass
 
         # Then try a normale Pandas DataFrame
         try:
             self.df = pd.DataFrame(df)
         except ValueError:
-            self.df = "ERROR: DataFrame is not available."
+            try:
+                self.df_normalized = pd.json_normalize(df)
+            except NotImplementedError:
+                self.df_normalized = "ERROR: Normalized DataFrame is not available."
 
         # Try a normalized option
         try:

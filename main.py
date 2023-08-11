@@ -1,5 +1,4 @@
 from json_db import *
-from functions import *
 
 # import keyboard << come back to this
 
@@ -26,34 +25,34 @@ def refresh():
         cf_zip_path = zip_dir+"\\companyfacts.zip"
 
         if os.path.exists(cf_zip_path) and (datetime.date.fromtimestamp(os.path.getmtime(cf_zip_path)) == today): 
-            print("Passing   ...")
+            print("Passing ...")
             pass
         else:
-            print("Requesting ...")
+            print("Installing ...")
             load_url("https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip", dir=zip_dir)
 
         print("Gateway 2 ...")
         sbm_zip_path = zip_dir+"\\submissions.zip"
 
         if os.path.exists(sbm_zip_path) and (datetime.date.fromtimestamp(os.path.getmtime(sbm_zip_path)) == today): 
-            print("Passing   ...")
+            print("Passing ...")
             pass
         else:
-            print("Requesting ...")
+            print("Installing ...")
             load_url("https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip", dir=zip_dir)
 
         # Unzip the bulk data
         # Company Facts
         print("Gateway 3 ...")
-        cf_path = home_dir+"\\companyfacts"
-        if not os.path.exists(cf_path):
-            print(f"Installing directory: {cf_path}")
-            os.makedirs(cf_path)
-        if len(os.listdir(cf_path)) == 0:
-            unzip(cf_zip_path, cf_path)
-        if os.path.exists(cf_path) and (datetime.date.fromtimestamp(os.path.getmtime(cf_path)) != today):
+        # cf_dir = home_dir+"\\companyfacts"
+        if not os.path.exists(cf_dir):
+            print(f"Installing directory: {cf_dir}")
+            os.makedirs(cf_dir)
+        if len(os.listdir(cf_dir)) == 0:
+            unzip(cf_zip_path, cf_dir)
+        if os.path.exists(cf_dir) and (datetime.date.fromtimestamp(os.path.getmtime(cf_dir)) != today):
             try:
-                unzip(cf_zip_path, cf_path)
+                unzip(cf_zip_path, cf_dir)
             except Exception:
                 print(".zip corrupted - redownloading .zip")
                 os.remove(cf_zip_path)
@@ -64,36 +63,43 @@ def refresh():
         
         # Submissions
         print("Gateway 4 ...")
-        sbm_path = home_dir+"\\submissions"
-        if not os.path.exists(sbm_path):
-            print(f"Installing directory: {sbm_path}")
-            os.makedirs(sbm_path)
+        # sbms_dir = home_dir+"\\submissions"
+        if not os.path.exists(sbms_dir):
+            print(f"Installing directory: {sbms_dir}")
+            os.makedirs(sbms_dir)
 
-        if len(os.listdir(sbm_path)) == 0:
-            unzip(sbm_zip_path, sbm_path)
+        if len(os.listdir(sbms_dir)) == 0:
+            unzip(sbm_zip_path, sbms_dir)
 
-        if os.path.exists(sbm_path) and (datetime.date.fromtimestamp(os.path.getmtime(sbm_path)) != today):
+        if os.path.exists(sbms_dir) and (datetime.date.fromtimestamp(os.path.getmtime(sbms_dir)) != today):
             try:
-                unzip(sbm_zip_path, sbm_path) # What if .zip corrupts?
+                unzip(sbm_zip_path, sbms_dir) # What if .zip corrupts?
             except Exception:
                 print(".zip corrupted - redownloading .zip")
                 os.remove(sbm_zip_path)
                 load_url("https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip", dir=zip_dir)
-                unzip(sbm_zip_path, sbm_path)
-            print("Passing\t")
+                unzip(sbm_zip_path, sbms_dir)
+            print("Passing\t..")
             pass
+
+        # Download CIK Code, Ticker Symbol, Company Name from .json link and store as a .pkl file
+        
+        if not os.path.exists(tikr_dir):
+            print(f"Installing directory: {tikr_dir}")
+            os.makedirs(tikr_dir)
+        print("Requesting data ...")
+        tikrs = pd.DataFrame(load_url("https://www.sec.gov/files/company_tickers.json"))
+        tikrs.to_pickle(tikr_dir + "\\tikrs.pkl")
     else:
         pass
 refresh()
 
-# Download CIK Code, Ticker Symbol, Company Name from .json link
-print("Requesting data ...")
-tikrs = json_df(load_url("https://www.sec.gov/files/company_tickers.json"))
-tikrs.df = tikrs.df.transpose()
-tikrs.df['cik_str'] = tikrs.df['cik_str'].apply('{:0>10}'.format)
+init_tikr = pd.read_pickle(tikr_dir+"\\tikrs.pkl")
+tikrs = pd.DataFrame(init_tikr)
+tikrs = tikrs.transpose()
+tikrs['cik_str'] = tikrs['cik_str'].apply('{:0>10}'.format)
 print("Deployment complete.")
 clear_screen()
-
 # <<< install permanent state of Ticker table
 
 ###########################
@@ -150,13 +156,14 @@ def submissions_or_facts():
         print("Press 1 for all Reports & Submissions\nPress 2 for Company Data Overview\n")
         input_key = input().upper()
         if   input_key == '1':
-            return json_df(sbms_json)
+            return pd.read_json(sbms_json)
         elif input_key == '2':
-            return json_df(cf_json)
+            return pd.read_json(cf_json)
 
 current = submissions_or_facts()
-print(current.df)
-print(current.df_normalized)
+current = pd.DataFrame(current["facts"][0])
+print(current)
+# print(pd.json_normalize(submissions_or_facts()))
 
 
 
